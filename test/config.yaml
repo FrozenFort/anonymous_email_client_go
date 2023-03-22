@@ -1,3 +1,3 @@
-address: "localhost:5002"
+address: "localhost:50052"
 timeout: 60
 tee_root_cert: "./vk.pem"
