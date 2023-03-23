@@ -5,7 +5,7 @@ package anony_email;
 option go_package = "github.com/FrozenFort/broker-anony-email";
 
 service AnonyEmailBroker {
-  rpc Attest(stream Request) returns (stream Response) {}
+  rpc Attest(Request) returns (Response) {}
   rpc SendAnonyEmail(AnonyEmailAddr) returns (Response) {}
 }
 
