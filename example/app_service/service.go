@@ -93,18 +93,18 @@ func StartAppService(teeConfig *config.Config, appConfig *config.Config) {
 	}
 }
 
-func (s *AppService) Attest(ctx context.Context, request *pb.Request) (*pb.Response, error) {
+func (s *AppService) Attest(ctx context.Context, request *pb.Challenge) (*pb.Reply, error) {
 	response, err := s.Tee.Attest(request.Message)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Response{
+	return &pb.Reply{
 		Flag:    response.Flag,
 		Message: response.Message,
 	}, nil
 }
 
-func (s *AppService) SendAnonyEmail(ctx context.Context, request *pb.AnonyEmailAddr) (*pb.Response, error) {
+func (s *AppService) SendAnonyEmail(ctx context.Context, request *pb.AnonyEmailAddr) (*pb.Reply, error) {
 	codeRaw := make([]byte, 5)
 	_, err := rand.Read(codeRaw)
 	if err != nil {
@@ -118,12 +118,12 @@ func (s *AppService) SendAnonyEmail(ctx context.Context, request *pb.AnonyEmailA
 	err = s.Tee.SendAnonyEmail(request.EncryptedAccount, domain, testSubject, code)
 	if err != nil {
 		errStr := fmt.Sprintf("fail to send authentication code: %v", err)
-		return &pb.Response{
+		return &pb.Reply{
 			Flag:    1,
 			Message: []byte(errStr),
 		}, fmt.Errorf(errStr)
 	}
-	return &pb.Response{
+	return &pb.Reply{
 		Flag:    0,
 		Message: []byte("please check your email box for authentication code"),
 	}, nil
