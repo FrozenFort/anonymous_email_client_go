@@ -25,7 +25,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/FrozenFort/anonymous_email_client_go/config"
-	pb "github.com/FrozenFort/anonymous_email_client_go/pb/tee_anony_email"
+	pb "github.com/FrozenFort/anonymous_email_client_go/pb/broker_anony_email"
 )
 
 const (
@@ -42,7 +42,7 @@ const (
 )
 
 type TEEClient struct {
-	Client     pb.AnonyEmailServerClient
+	Client     pb.AnonyEmailBrokerClient
 	grpcClient *grpc.ClientConn
 	timeOut    time.Duration
 
@@ -127,7 +127,7 @@ func NewTEEClient(conf *config.Config) (*TEEClient, error) {
 	}
 
 	return &TEEClient{
-		Client:       pb.NewAnonyEmailServerClient(conn),
+		Client:       pb.NewAnonyEmailBrokerClient(conn),
 		grpcClient:   conn,
 		timeOut:      timeOut,
 		TEEVerifyKey: teeVK,
@@ -144,7 +144,7 @@ func (c *TEEClient) Attest() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("attestation: fail to generate random challenge: %v", err)
 	}
-	request := &pb.Request{
+	request := &pb.Challenge{
 		Flag:    0,
 		Message: challenge,
 	}
@@ -236,7 +236,7 @@ func (c *TEEClient) SendAnonyEmail(emailAddr, emailDomain string, ekPEM []byte) 
 	}
 	ciphertext := append(append(encryptedKey, nonce...), encryptedAcc...)
 
-	anonyEmail := &pb.AnonyEmail{
+	anonyEmail := &pb.AnonyEmailAddr{
 		EncryptedAddr:    []byte(emailDomain),
 		EncryptedAccount: ciphertext,
 	}
