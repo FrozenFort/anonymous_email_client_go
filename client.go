@@ -2,10 +2,8 @@ package anonymous_email_client_go
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -21,23 +19,10 @@ import (
 	pb "github.com/FrozenFort/anonymous_email_client_go/pb/tee_anony_email"
 )
 
-const (
-	DefaultChallengeLength uint32 = 32
-	Uint32Size             uint32 = 4
-
-	MinRSAPubKeySize uint32 = 1500
-	MinECCPubKeySize uint32 = 150
-	MinECCSigSize    uint32 = 70
-
-	MinProofSize uint32 = Uint32Size*4 + MinRSAPubKeySize + MinECCPubKeySize + MinECCSigSize
-)
-
 type TEEClient struct {
 	Client     pb.AnonyEmailServerClient
 	grpcClient *grpc.ClientConn
 	timeOut    time.Duration
-
-	TEEVerifyKey *ecdsa.PublicKey
 }
 
 func NewTEEClientFromConfigFile(configFile string) (*TEEClient, error) {
@@ -60,22 +45,6 @@ func NewTEEClient(conf *config.Config) (*TEEClient, error) {
 	timeOut := time.Duration(conf.TimeOut)
 	if conf.TimeOut < 30 {
 		timeOut = time.Duration(config.DefaultTimeOut)
-	}
-
-	teeVKPEM, err := ioutil.ReadFile(conf.TEEVerifyKeyPath)
-	if err != nil {
-		return nil, fmt.Errorf("fail to read TEE verificaton key from file [%s]: %v",
-			conf.TEEVerifyKeyPath, err)
-	}
-	teeVKBlock, _ := pem.Decode(teeVKPEM)
-	teeVKGeneral, err := x509.ParsePKIXPublicKey(teeVKBlock.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("fail to resolve TEE verification key from PEM: %v", err)
-	}
-	teeVK, ok := teeVKGeneral.(*ecdsa.PublicKey)
-	if !ok {
-		return nil, fmt.Errorf("configuration error: wrong TEE verification key type, "+
-			"expect *ecdsa.Publickey, got %T", teeVKGeneral)
 	}
 
 	var conn *grpc.ClientConn
@@ -118,10 +87,9 @@ func NewTEEClient(conf *config.Config) (*TEEClient, error) {
 	}
 
 	return &TEEClient{
-		Client:       pb.NewAnonyEmailServerClient(conn),
-		grpcClient:   conn,
-		timeOut:      timeOut,
-		TEEVerifyKey: teeVK,
+		Client:     pb.NewAnonyEmailServerClient(conn),
+		grpcClient: conn,
+		timeOut:    timeOut,
 	}, nil
 }
 
