@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package anony_email;
+
+option go_package = "github.com/FrozenFort/tee-anony-email";
+
+service AnonyEmailServer {
+  rpc Attest(Request) returns (Response) {}
+  rpc SendAnonyEmail(AnonyEmail) returns (Response) {}
+}
+
+message Request {
+  int64 flag = 1;
+  bytes message = 2;
+}
+
+message Response {
+  int64 flag = 1;
+  bytes message = 2;
+}
+
+message AnonyEmail {
+  // 邮箱地址密文
+  bytes encrypted_addr = 1;
+  // 邮箱用户名密文
+  bytes encrypted_account = 2;
+  // 邮件 Subject
+  bytes subject = 3;
+  // 邮件内容，含验证码
+  bytes content = 4;
+}

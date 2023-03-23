@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package anony_email;
+
+option go_package = "github.com/FrozenFort/broker-anony-email";
+
+service AnonyEmailBroker {
+  rpc Attest(stream Request) returns (stream Response) {}
+  rpc SendAnonyEmail(AnonyEmailAddr) returns (Response) {}
+}
+
+message Request {
+  int64 flag = 1;
+  bytes message = 2;
+}
+
+message Response {
+  int64 flag = 1;
+  bytes message = 2;
+}
+
+message AnonyEmailAddr {
+  // 邮箱地址密文
+  bytes encrypted_addr = 1;
+  // 邮箱用户名密文
+  bytes encrypted_account = 2;
+}
