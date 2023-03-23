@@ -87,7 +87,7 @@ func StartAppService(teeConfig *config.Config, appConfig *config.Config) {
 
 	pb.RegisterAnonyEmailBrokerServer(s, brokerServer)
 
-	fmt.Println("Broker starts...")
+	fmt.Println("App starts...")
 	if err := s.Serve(lis); err != nil {
 		panic("failed to serve: " + err.Error())
 	}
