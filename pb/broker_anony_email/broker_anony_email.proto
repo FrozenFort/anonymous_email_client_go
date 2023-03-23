@@ -5,16 +5,16 @@ package anony_email;
 option go_package = "github.com/FrozenFort/broker-anony-email";
 
 service AnonyEmailBroker {
-  rpc Attest(Request) returns (Response) {}
-  rpc SendAnonyEmail(AnonyEmailAddr) returns (Response) {}
+  rpc Attest(Challenge) returns (Reply) {}
+  rpc SendAnonyEmail(AnonyEmailAddr) returns (Reply) {}
 }
 
-message Request {
+message Challenge {
   int64 flag = 1;
   bytes message = 2;
 }
 
-message Response {
+message Reply {
   int64 flag = 1;
   bytes message = 2;
 }
@@ -25,3 +25,4 @@ message AnonyEmailAddr {
   // 邮箱用户名密文
   bytes encrypted_account = 2;
 }
+

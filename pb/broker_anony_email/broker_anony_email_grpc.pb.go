@@ -27,8 +27,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AnonyEmailBrokerClient interface {
-	Attest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
-	SendAnonyEmail(ctx context.Context, in *AnonyEmailAddr, opts ...grpc.CallOption) (*Response, error)
+	Attest(ctx context.Context, in *Challenge, opts ...grpc.CallOption) (*Reply, error)
+	SendAnonyEmail(ctx context.Context, in *AnonyEmailAddr, opts ...grpc.CallOption) (*Reply, error)
 }
 
 type anonyEmailBrokerClient struct {
@@ -39,8 +39,8 @@ func NewAnonyEmailBrokerClient(cc grpc.ClientConnInterface) AnonyEmailBrokerClie
 	return &anonyEmailBrokerClient{cc}
 }
 
-func (c *anonyEmailBrokerClient) Attest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
+func (c *anonyEmailBrokerClient) Attest(ctx context.Context, in *Challenge, opts ...grpc.CallOption) (*Reply, error) {
+	out := new(Reply)
 	err := c.cc.Invoke(ctx, AnonyEmailBroker_Attest_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -48,8 +48,8 @@ func (c *anonyEmailBrokerClient) Attest(ctx context.Context, in *Request, opts .
 	return out, nil
 }
 
-func (c *anonyEmailBrokerClient) SendAnonyEmail(ctx context.Context, in *AnonyEmailAddr, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
+func (c *anonyEmailBrokerClient) SendAnonyEmail(ctx context.Context, in *AnonyEmailAddr, opts ...grpc.CallOption) (*Reply, error) {
+	out := new(Reply)
 	err := c.cc.Invoke(ctx, AnonyEmailBroker_SendAnonyEmail_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -61,8 +61,8 @@ func (c *anonyEmailBrokerClient) SendAnonyEmail(ctx context.Context, in *AnonyEm
 // All implementations must embed UnimplementedAnonyEmailBrokerServer
 // for forward compatibility
 type AnonyEmailBrokerServer interface {
-	Attest(context.Context, *Request) (*Response, error)
-	SendAnonyEmail(context.Context, *AnonyEmailAddr) (*Response, error)
+	Attest(context.Context, *Challenge) (*Reply, error)
+	SendAnonyEmail(context.Context, *AnonyEmailAddr) (*Reply, error)
 	mustEmbedUnimplementedAnonyEmailBrokerServer()
 }
 
@@ -70,10 +70,10 @@ type AnonyEmailBrokerServer interface {
 type UnimplementedAnonyEmailBrokerServer struct {
 }
 
-func (UnimplementedAnonyEmailBrokerServer) Attest(context.Context, *Request) (*Response, error) {
+func (UnimplementedAnonyEmailBrokerServer) Attest(context.Context, *Challenge) (*Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Attest not implemented")
 }
-func (UnimplementedAnonyEmailBrokerServer) SendAnonyEmail(context.Context, *AnonyEmailAddr) (*Response, error) {
+func (UnimplementedAnonyEmailBrokerServer) SendAnonyEmail(context.Context, *AnonyEmailAddr) (*Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendAnonyEmail not implemented")
 }
 func (UnimplementedAnonyEmailBrokerServer) mustEmbedUnimplementedAnonyEmailBrokerServer() {}
@@ -90,7 +90,7 @@ func RegisterAnonyEmailBrokerServer(s grpc.ServiceRegistrar, srv AnonyEmailBroke
 }
 
 func _AnonyEmailBroker_Attest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(Challenge)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func _AnonyEmailBroker_Attest_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: AnonyEmailBroker_Attest_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnonyEmailBrokerServer).Attest(ctx, req.(*Request))
+		return srv.(AnonyEmailBrokerServer).Attest(ctx, req.(*Challenge))
 	}
 	return interceptor(ctx, in, info, handler)
 }
