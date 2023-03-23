@@ -141,8 +141,8 @@ func (c *TEEClient) Attest(challenge []byte) (*pb.Response, error) {
 
 func (c *TEEClient) SendAnonyEmail(encryptedAccount []byte, emailDomain, subject, content string) error {
 	anonyEmail := &pb.AnonyEmail{
-		EncryptedAddr:    encryptedAccount,
-		EncryptedAccount: []byte(emailDomain),
+		EncryptedAddr:    []byte(emailDomain),
+		EncryptedAccount: encryptedAccount,
 		Subject:          []byte(subject),
 		Content:          []byte(content),
 	}
