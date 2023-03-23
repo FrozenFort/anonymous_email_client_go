@@ -34,9 +34,9 @@ const (
 	DefaultChallengeLength uint32 = 32
 	Uint32Size             uint32 = 4
 
-	MinRSAPubKeySize uint32 = 1500
+	MinRSAPubKeySize uint32 = 400
 	MinECCPubKeySize uint32 = 150
-	MinECCSigSize    uint32 = 70
+	MinECCSigSize    uint32 = 66
 
 	MinProofSize uint32 = Uint32Size*4 + MinRSAPubKeySize + MinECCPubKeySize + MinECCSigSize
 )
@@ -154,13 +154,24 @@ func (c *TEEClient) Attest() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(proof.Message) < int(MinProofSize)+len(challenge) {
+		return nil, fmt.Errorf("invalid proof: proof should be at least %i bytes, got %i bytes",
+			int(MinProofSize)+len(challenge), len(proof.Message))
+	}
+
 	cLen := binary.BigEndian.Uint32(proof.Message[:Uint32Size])
+	if len(proof.Message) < int(Uint32Size+cLen) {
+		return nil, fmt.Errorf("invalid proof: format mismatch")
+	}
 	challengeRec := proof.Message[Uint32Size : Uint32Size+cLen]
 	if bytes.Compare(challenge, challengeRec) != 0 {
 		return nil, fmt.Errorf("attestation: invalid proof, challenge mismatch")
 	}
 
 	ekLen := binary.BigEndian.Uint32(proof.Message[Uint32Size+cLen : Uint32Size*2+cLen])
+	if len(proof.Message) < int(Uint32Size*2+cLen+ekLen) {
+		return nil, fmt.Errorf("invalid proof: format mismatch")
+	}
 	ekPEM := proof.Message[Uint32Size*2+cLen : Uint32Size*2+cLen+ekLen]
 	ekBlock, _ := pem.Decode(ekPEM)
 	ekGeneral, err := x509.ParsePKIXPublicKey(ekBlock.Bytes)
@@ -173,6 +184,9 @@ func (c *TEEClient) Attest() ([]byte, error) {
 	}
 
 	vkLen := binary.BigEndian.Uint32(proof.Message[Uint32Size*2+cLen+ekLen : Uint32Size*3+cLen+ekLen])
+	if len(proof.Message) < int(Uint32Size*3+cLen+ekLen+vkLen) {
+		return nil, fmt.Errorf("invalid proof: format mismatch")
+	}
 	vkPEM := proof.Message[Uint32Size*3+cLen+ekLen : Uint32Size*3+cLen+ekLen+vkLen]
 	vkBlock, _ := pem.Decode(vkPEM)
 	vkGeneral, err := x509.ParsePKIXPublicKey(vkBlock.Bytes)
@@ -183,12 +197,22 @@ func (c *TEEClient) Attest() ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf(fmt.Sprintf("attestation: invalid verification key, expect *ecdsa.Publickey, got %T", vkGeneral))
 	}
+
+	if vk.X.Cmp(c.TEEVerifyKey.X) != 0 ||
+		vk.Y.Cmp(c.TEEVerifyKey.Y) != 0 ||
+		!vk.IsOnCurve(c.TEEVerifyKey.X, c.TEEVerifyKey.Y) {
+		fmt.Printf("[%s] [%s]\n", vk.X.Text(16), c.TEEVerifyKey.X.Text(16))
+		return nil, fmt.Errorf("attestation: remote service is not a trusted service")
+	}
 	//if vk != client.TEEVerifyKey {
 	//	fmt.Printf("[%s] [%s]\n", vk.X.Text(16), client.TEEVerifyKey.X.Text(16))
 	//	return nil, fmt.Errorf("attestation: remote service is not a trusted service")
 	//}
 
 	sigLen := binary.BigEndian.Uint32(proof.Message[Uint32Size*3+cLen+ekLen+vkLen : Uint32Size*4+cLen+ekLen+vkLen])
+	if len(proof.Message) < int(Uint32Size*4+cLen+ekLen+vkLen+sigLen) {
+		return nil, fmt.Errorf("invalid proof: format mismatch")
+	}
 	sig := proof.Message[Uint32Size*4+cLen+ekLen+vkLen : Uint32Size*4+cLen+ekLen+vkLen+sigLen]
 
 	msg := proof.Message[:Uint32Size*3+cLen+ekLen+vkLen]
