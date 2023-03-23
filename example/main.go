@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/FrozenFort/anonymous_email_client_go/config"
 	"log"
 	"os"
 	"time"
 
 	"gopkg.in/yaml.v3"
 
-	client "github.com/FrozenFort/anonymous_email_client_go/example/app_client"
-	server "github.com/FrozenFort/anonymous_email_client_go/example/app_service"
+	client "example/app_client"
+	server "example/app_service"
+	"github.com/FrozenFort/anonymous_email_client_go/config"
 )
 
 const (
