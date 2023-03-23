@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/FrozenFort/anonymous_email_client_go/config"
-	pb "github.com/FrozenFort/anonymous_email_client_go/tee_anony_email"
+	pb "github.com/FrozenFort/anonymous_email_client_go/pb/tee_anony_email"
 )
 
 const (
